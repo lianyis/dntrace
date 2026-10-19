@@ -18,7 +18,7 @@ var commitID = config.CommitID
 
 func Version() {
 	fmt.Fprintf(color.Output, "%s %s %s %s\n",
-		color.New(color.FgWhite, color.Bold).Sprintf("%s", "NextTrace"),
+		color.New(color.FgWhite, color.Bold).Sprintf("%s", "dntrace"),
 		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", version),
 		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", buildDate),
 		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", commitID),
@@ -26,34 +26,9 @@ func Version() {
 }
 
 func CopyRight() {
-	sponsor()
-	fmt.Fprintf(color.Output, "\n%s\n%s %s\n%s %s\n%s %s, %s, %s, %s, %s\n%s %s\n",
-		color.New(color.FgCyan, color.Bold).Sprintf("%s", "NextTrace CopyRight"),
-		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Honorary Founder:"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "Leo"),
-		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Project Chair:"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "Tso"),
-		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Core-Developer:"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "Leo"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "Vincent"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "zhshch"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "Yunlq"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "Tso"),
-		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Infra Maintainer:"),
-		color.New(color.FgHiBlue, color.Bold).Sprintf("%s", "Tso"),
-	)
-}
-
-func sponsor() {
-	italic := "\x1b[3m%s\x1b[0m"
-	formatted := fmt.Sprintf(italic, "(Listed in no particular order)")
-
-	fmt.Fprintf(color.Output, "%s\n%s\n%s\n%s\n%s\n",
-		color.New(color.FgCyan, color.Bold).Sprintf("%s", "NextTrace Sponsored by"),
-		color.New(color.FgHiYellow, color.Bold).Sprintf("%s", "· DMIT.io"),
-		color.New(color.FgHiYellow, color.Bold).Sprintf("%s", "· Misaka.io"),
-		color.New(color.FgHiYellow, color.Bold).Sprintf("%s", "· Saltyfish.io"),
-		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", formatted),
+	fmt.Fprintf(color.Output, "\n%s\n%s\n",
+		color.New(color.FgCyan, color.Bold).Sprintf("%s", "dntrace - DN42 traceroute"),
+		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", "Forked from NTrace-core (GPL-3.0), stripped down for DN42-only use."),
 	)
 }
 
@@ -77,6 +52,10 @@ func PrintTraceRouteNav(ip net.IP, domain string, dataOrigin string, maxHops int
 
 func applyLangSetting(h *trace.Hop) {
 	if h.Geo == nil || h.Geo.Source == trace.PendingGeoSource {
+		return
+	}
+	// dntrace: DN42 geofeed carries no country/city data; leave as-is.
+	if h.Geo.Source == "DN42" {
 		return
 	}
 	if len(h.Geo.Country) <= 1 {

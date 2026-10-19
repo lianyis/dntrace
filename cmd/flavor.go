@@ -1,14 +1,13 @@
-//go:build flavor_ntr
-
 package cmd
 
+// dntrace is DN42-only: single flavor, no build tags.
 const (
-	appBinName       = "ntr"
+	appBinName       = "dntrace"
 	enableWebUI      = false
 	enableGlobalping = false
 	enableMTR        = true
-	enableMTU        = false
+	enableMTU        = true
 	enableSpeed      = false
 	enableNali       = false
-	defaultMTR       = true
+	defaultMTR       = false
 )

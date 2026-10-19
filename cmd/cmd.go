@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,121 +20,18 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/lianyis/dntrace/assets/windivert"
-	"github.com/lianyis/dntrace/config"
-	fastTrace "github.com/lianyis/dntrace/fast_trace"
 	"github.com/lianyis/dntrace/ipgeo"
 	"github.com/lianyis/dntrace/printer"
 	"github.com/lianyis/dntrace/reporter"
 	"github.com/lianyis/dntrace/trace"
 	"github.com/lianyis/dntrace/tracelog"
-	"github.com/lianyis/dntrace/tracemap"
+	"github.com/lianyis/dntrace/dn42"
 	"github.com/lianyis/dntrace/util"
-	"github.com/lianyis/dntrace/wshandle"
 )
 
 func ptrBool(v bool) *bool    { return &v }
 func ptrStr(v string) *string { return &v }
 func ptrInt(v int) *int       { return &v }
-
-type listenInfo struct {
-	Binding string
-	Access  string
-}
-
-const (
-	defaultPacketIntervalMs        = 50
-	defaultTracerouteTTLIntervalMs = 300
-)
-
-var (
-	domainLookupFn                = util.DomainLookUpWithContext
-	prepareNextTraceAPIV4FastIPFn = ipgeo.PrepareNextTraceAPIV4FastIP
-	newLeoWebsocketFn             = wshandle.NewWithContext
-	newLeoWebsocketAsyncFn        = wshandle.NewWithContextAsync
-)
-
-func normalizeListenAddr(addr string) string {
-	trimmed := strings.TrimSpace(addr)
-	if trimmed == "" {
-		return ":1080"
-	}
-	if isDigitsOnly(trimmed) {
-		return ":" + trimmed
-	}
-	return trimmed
-}
-
-func splitListenAddr(effective string) (host, port string, ok bool) {
-	host, port, err := net.SplitHostPort(effective)
-	if err == nil {
-		if port == "" {
-			port = "1080"
-		}
-		return host, port, true
-	}
-	if strings.HasPrefix(effective, ":") {
-		return "", strings.TrimPrefix(effective, ":"), true
-	}
-	return "", "", false
-}
-
-func formatHTTPListenURL(host, port string) string {
-	if strings.Contains(host, ":") && !strings.HasPrefix(host, "[") {
-		host = "[" + host + "]"
-	}
-	return fmt.Sprintf("http://%s:%s", host, port)
-}
-
-func resolveListenAccessHost(host string) string {
-	if host == "" || host == "0.0.0.0" || host == "::" {
-		return guessLocalIPv4()
-	}
-	return host
-}
-
-func buildListenInfo(addr string) listenInfo {
-	effective := normalizeListenAddr(addr)
-	host, port, ok := splitListenAddr(effective)
-	if !ok {
-		return listenInfo{Binding: effective}
-	}
-
-	rawHost := host
-	if rawHost == "" {
-		rawHost = "0.0.0.0"
-	}
-
-	info := listenInfo{
-		Binding: formatHTTPListenURL(rawHost, port),
-	}
-
-	accessHost := resolveListenAccessHost(host)
-	if accessHost != "" {
-		info.Access = formatHTTPListenURL(accessHost, port)
-	}
-
-	return info
-}
-
-func mcpEndpointURL(info listenInfo) string {
-	endpoint := info.Access
-	if endpoint == "" {
-		endpoint = info.Binding
-	}
-	return strings.TrimRight(endpoint, "/") + "/mcp"
-}
-
-func isDigitsOnly(s string) bool {
-	if s == "" {
-		return false
-	}
-	for _, r := range s {
-		if r < '0' || r > '9' {
-			return false
-		}
-	}
-	return true
-}
 
 func normalizeNegativePacketSizeArgs(args []string) []string {
 	if len(args) < 3 {
@@ -164,63 +59,6 @@ func isNegativeInteger(s string) bool {
 	return err == nil && v < 0
 }
 
-func guessLocalIPv4() string {
-	addrs, err := net.InterfaceAddrs()
-	if err == nil {
-		for _, address := range addrs {
-			if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
-				if ip4 := ipNet.IP.To4(); ip4 != nil {
-					return ip4.String()
-				}
-			}
-		}
-	}
-	return "127.0.0.1"
-}
-
-func defaultLocalListenAddr() string {
-	if hasIPv4Loopback() {
-		return "127.0.0.1:1080"
-	}
-	if hasIPv6Loopback() {
-		return "[::1]:1080"
-	}
-	return "127.0.0.1:1080"
-}
-
-func hasIPv4Loopback() bool {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return false
-	}
-	for _, address := range addrs {
-		if ipNet, ok := address.(*net.IPNet); ok && ipNet.IP.IsLoopback() {
-			if ip4 := ipNet.IP.To4(); ip4 != nil {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func hasIPv6Loopback() bool {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return false
-	}
-	for _, address := range addrs {
-		if ipNet, ok := address.(*net.IPNet); ok && ipNet.IP.IsLoopback() {
-			if ip := ipNet.IP; ip.To4() == nil && len(ip) == net.IPv6len {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// sanitizeUsagePositionalArgs replaces the auto-generated positional argument
-// name (e.g. "_positionalArg_nexttrace_33") with a friendlier label in the
-// usage string produced by argparse.
 func sanitizeUsagePositionalArgs(usage string) string {
 	// argparse generates names like "_positionalArg_nexttrace_<N>"
 	// We scan for the prefix and replace the whole token with "TARGET".
@@ -297,6 +135,15 @@ func fixPositionalAlignment(usage string) string {
 	return usage[:afterName] + strings.Repeat(" ", needed) + usage[end:]
 }
 
+const (
+	defaultPacketIntervalMs        = 50
+	defaultTracerouteTTLIntervalMs = 300
+)
+
+var (
+	domainLookupFn = util.DomainLookUpWithContext
+)
+
 type effectiveMTRModes struct {
 	mtr    bool
 	report bool
@@ -313,20 +160,6 @@ type tracerouteOutputFlags struct {
 	classicPrint  *bool
 }
 
-type webUIFlags struct {
-	deployListen *string
-	deployToken  *string
-	mcp          *bool
-	deploy       *bool
-}
-
-type deployRunOptions struct {
-	ListenAddr  string
-	EnableMCP   bool
-	AuthEnabled bool
-	DeployToken string
-}
-
 type mtrCLIFlags struct {
 	mtrMode    *bool
 	reportMode *bool
@@ -340,13 +173,6 @@ const windowsInitHelpText = "Extract WinDivert runtime to executable directory"
 func registerInitFlag(parser *argparse.Parser) *bool {
 	if runtime.GOOS == "windows" {
 		return parser.Flag("", "init", &argparse.Options{Help: windowsInitHelpText})
-	}
-	return ptrBool(false)
-}
-
-func registerFastTraceFlag(parser *argparse.Parser) *bool {
-	if !defaultMTR {
-		return parser.Flag("F", "fast-trace", &argparse.Options{Help: "One-Key Fast Trace to China ISPs"})
 	}
 	return ptrBool(false)
 }
@@ -421,27 +247,6 @@ func registerTracerouteOutputFlags(parser *argparse.Parser) tracerouteOutputFlag
 	}
 }
 
-func registerWebUIFlags(parser *argparse.Parser) webUIFlags {
-	return registerWebUIFlagsWithAvailability(parser, enableWebUI)
-}
-
-func registerWebUIFlagsWithAvailability(parser *argparse.Parser, enabled bool) webUIFlags {
-	if enabled {
-		return webUIFlags{
-			deployListen: parser.String("", "listen", &argparse.Options{Help: "Set listen address for web console (e.g. 127.0.0.1:30080)"}),
-			deployToken:  parser.String("", "deploy-token", &argparse.Options{Help: "Set bearer token for --deploy WebUI/API/WebSocket/MCP access"}),
-			mcp:          parser.Flag("", "mcp", &argparse.Options{Help: "Enable MCP endpoint under --deploy at /mcp"}),
-			deploy:       parser.Flag("", "deploy", &argparse.Options{Help: "Start the Gin powered web console"}),
-		}
-	}
-	return webUIFlags{
-		deployListen: ptrStr(""),
-		deployToken:  ptrStr(""),
-		mcp:          ptrBool(false),
-		deploy:       ptrBool(false),
-	}
-}
-
 func registerPacketIntervalFlag(parser *argparse.Parser) *int {
 	if !defaultMTR {
 		return parser.Int("z", "send-time", &argparse.Options{Default: defaultPacketIntervalMs, Help: buildPacketIntervalHelp()})
@@ -488,24 +293,6 @@ func applyTTLIntervalDefault(ttlInterval *int, ttlTimeExplicit, effectiveMTR boo
 		return
 	}
 	*ttlInterval = defaultTracerouteTTLIntervalMs
-}
-
-func registerDisableMaptraceFlag(parser *argparse.Parser) *bool {
-	if !defaultMTR {
-		return parser.Flag("M", "map", &argparse.Options{Help: "Disable Print Trace Map"})
-	}
-	return ptrBool(true)
-}
-
-func registerGlobalpingFlag(parser *argparse.Parser) *string {
-	return registerGlobalpingFlagWithAvailability(parser, enableGlobalping)
-}
-
-func registerGlobalpingFlagWithAvailability(parser *argparse.Parser, enabled bool) *string {
-	if enabled {
-		return parser.String("", "from", &argparse.Options{Help: "Run traceroute via Globalping (https://globalping.io/network) from a specified location. The location field accepts continents, countries, regions, cities, ASNs, ISPs, or cloud regions."})
-	}
-	return parser.String("", "from", &argparse.Options{Help: "Run traceroute via Globalping (full build only; unavailable in this binary)"})
 }
 
 func registerMTRFlags(parser *argparse.Parser) mtrCLIFlags {
@@ -597,143 +384,13 @@ func maybePrintVersion(ver bool) bool {
 	return true
 }
 
-type deployAuthPlan struct {
-	Enabled       bool
-	Token         string
-	AutoGenerated bool
-}
-
-func maybeRunDeployMode(deploy bool, deployListen string, enableMCP bool, deployToken string) bool {
-	if !deploy {
-		return false
-	}
-	if !enableWebUI {
-		if err := runDeploy(deployRunOptions{}, nil); err != nil {
-			if util.EnvDevMode {
-				panic(err)
-			}
-			log.Fatal(err)
-		}
-		return true
-	}
-
-	capabilitiesCheck()
-	listenAddr := strings.TrimSpace(deployListen)
-	envAddr := strings.TrimSpace(util.EnvDeployAddr)
-	userProvided := listenAddr != "" || envAddr != ""
-	if listenAddr == "" {
-		listenAddr = envAddr
-	}
-	if listenAddr == "" {
-		listenAddr = defaultLocalListenAddr()
-	}
-	authPlan, err := resolveDeployAuthPlan(listenAddr, deployToken)
-	if err != nil {
-		if util.EnvDevMode {
-			panic(err)
-		}
-		log.Fatal(err)
-	}
-
-	onReady := func(addr net.Addr) {
-		info := buildListenInfo(addr.String())
-		fmt.Printf("启动 NextTrace Web 控制台，监听地址: %s\n", info.Binding)
-		if enableMCP {
-			fmt.Printf("MCP Endpoint: %s\n", mcpEndpointURL(info))
-		}
-		if authPlan.Enabled {
-			if authPlan.AutoGenerated {
-				fmt.Printf("Deploy token: %s\n", authPlan.Token)
-			} else {
-				fmt.Println("Deploy token 鉴权已启用")
-			}
-		} else {
-			fmt.Println("Deploy token 鉴权未启用（仅限本机监听的默认行为）")
-		}
-		if !userProvided {
-			fmt.Println("远程访问请显式设置 --listen（例如 --listen 0.0.0.0:1080）。")
-		}
-		if info.Access != "" && info.Access != info.Binding {
-			fmt.Printf("如需远程访问，请尝试: %s\n", info.Access)
-		}
-		fmt.Println("注意：Web 控制台的安全性有限，请在确保安全的前提下使用，如有必要请使用ACL等方式加强安全性")
-	}
-	if err := runDeploy(deployRunOptions{
-		ListenAddr:  listenAddr,
-		EnableMCP:   enableMCP,
-		AuthEnabled: authPlan.Enabled,
-		DeployToken: authPlan.Token,
-	}, onReady); err != nil {
-		if util.EnvDevMode {
-			panic(err)
-		}
-		log.Fatal(err)
-	}
-	return true
-}
-
-func resolveDeployAuthPlan(listenAddr, cliToken string) (deployAuthPlan, error) {
-	token := strings.TrimSpace(cliToken)
-	if token == "" {
-		token = strings.TrimSpace(util.EnvDeployToken)
-	}
-	if token != "" {
-		return deployAuthPlan{Enabled: true, Token: token}, nil
-	}
-	if deployListenRequiresToken(listenAddr) {
-		generated, err := generateDeployToken()
-		if err != nil {
-			return deployAuthPlan{}, err
-		}
-		return deployAuthPlan{Enabled: true, Token: generated, AutoGenerated: true}, nil
-	}
-	return deployAuthPlan{}, nil
-}
-
-func generateDeployToken() (string, error) {
-	var b [32]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "", fmt.Errorf("generate deploy token: %w", err)
-	}
-	return base64.RawURLEncoding.EncodeToString(b[:]), nil
-}
-
-func deployListenRequiresToken(listenAddr string) bool {
-	host, _, ok := splitListenAddr(normalizeListenAddr(listenAddr))
-	if !ok {
-		return true
-	}
-	if host == "" {
-		return true
-	}
-	host = strings.Trim(host, "[]")
-	if strings.EqualFold(host, "localhost") {
-		return false
-	}
-	ip := net.ParseIP(host)
-	if ip == nil {
-		return true
-	}
-	return !ip.IsLoopback()
-}
-
-func handleStartupModes(noColor, jsonPrint bool, modes effectiveMTRModes, ver, deploy bool, deployListen string, enableMCP bool, deployToken string, init bool, osType int) bool {
+func handleStartupModes(noColor, jsonPrint bool, modes effectiveMTRModes, ver bool, init bool, osType int) bool {
 	applyColorMode(noColor)
 	printStartupBanner(jsonPrint, modes.mtr)
 	if maybePrintVersion(ver) {
 		return true
 	}
-	if maybeRunDeployMode(deploy, deployListen, enableMCP, deployToken) {
-		return true
-	}
 	return maybePrepareWinDivert(init, osType)
-}
-
-func validateDeployMCPMode(deploy, mcp bool) error {
-	if mcp && !deploy {
-		return errors.New("--mcp 必须与 --deploy 同时使用")
-	}
-	return nil
 }
 
 func resolveOSType() int {
@@ -797,24 +454,6 @@ func resolveTraceMethod(tcp, udp bool) trace.Method {
 	}
 }
 
-func maybeRunFastTraceMode(from string, fastTraceFlag bool, file string, params fastTrace.ParamsFastTrace, method trace.Method) bool {
-	if from != "" || (!fastTraceFlag && file == "") {
-		return false
-	}
-	fastTrace.FastTest(method, params)
-	if params.OutputPath != "" {
-		fmt.Printf("您的追踪日志已经存放在 %s 中\n", params.OutputPath)
-	}
-	os.Exit(0)
-	return true
-}
-
-func configureGeoDNS(dot string) {
-	if dot != "" {
-		util.SetGeoDNSResolver(dot)
-	}
-}
-
 func normalizeCLITarget(raw string) string {
 	domain := raw
 	if strings.Contains(domain, "/") {
@@ -855,65 +494,14 @@ func resolveCLITargetOrExit(raw string, usage string) string {
 	return domain
 }
 
-func applyDN42Mode(enabled bool, dataOrigin *string, disableMaptrace *bool) {
-	if !enabled {
-		return
-	}
-	applyDN42DataOrigin(dataOrigin)
-	*disableMaptrace = true
-}
-
-func applyDN42DataOrigin(dataOrigin *string) {
-	config.InitConfig()
-	*dataOrigin = "DN42"
-}
-
-func prepareRuntimeEnvironment(ctx context.Context, dn42 bool, dataOrigin *string, disableMaptrace *bool, powProvider *string, asyncLeo bool) *wshandle.WsConn {
+// prepareRuntimeEnvironment: dntrace is DN42-only. Ensures the geofeed
+// dataset is present and fresh (dual-URL download with cache), then checks
+// privileges. Never fails hard: tracing works offline with cached data.
+func prepareRuntimeEnvironment(ctx context.Context) {
 	capabilitiesCheck()
-	applyDN42Mode(dn42, dataOrigin, disableMaptrace)
-	return initLeoWebsocket(ctx, dataOrigin, powProvider, asyncLeo)
-}
-
-func initLeoWebsocket(ctx context.Context, dataOrigin, powProvider *string, async bool) *wshandle.WsConn {
-	if !strings.EqualFold(*dataOrigin, "LEOMOEAPI") {
-		return nil
+	if err := dn42.EnsureData(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "dntrace: geofeed init: %v\n", err)
 	}
-	if !strings.EqualFold(*powProvider, "api.nxtrace.org") {
-		util.PowProviderParam = *powProvider
-	}
-	if util.EnvDataProvider != "" {
-		*dataOrigin = util.EnvDataProvider
-	}
-	if !strings.EqualFold(*dataOrigin, "LEOMOEAPI") {
-		return nil
-	}
-	if ipgeo.NextTraceAPIV4TokenConfigured() {
-		if err := prepareNextTraceAPIV4FastIPFn(ctx, true); err == nil {
-			return nil
-		}
-	}
-
-	var leoWs *wshandle.WsConn
-	if async {
-		leoWs = newLeoWebsocketAsyncFn(ctx)
-	} else {
-		leoWs = newLeoWebsocketFn(ctx)
-	}
-	return leoWs
-}
-
-func closeLeoWebsocket(leoWs *wshandle.WsConn) {
-	if leoWs != nil {
-		leoWs.Close()
-	}
-}
-
-func maybeHandleGlobalping(from string, opts *trace.GlobalpingOptions, conf *trace.Config) bool {
-	if from == "" {
-		return false
-	}
-	handleGlobalpingTrace(opts, conf)
-	return true
 }
 
 func lookupTargetIP(ctx context.Context, domain string, ipv4Only, ipv6Only bool, dot string, jsonPrint bool) (net.IP, error) {
@@ -1068,14 +656,6 @@ func validateJSONRealtimeOutput(jsonPrint bool, outputPath string) error {
 	return nil
 }
 
-func setFastIPOutputSuppression(suppress bool) func() {
-	prev := util.SuppressFastIPOutput
-	util.SuppressFastIPOutput = suppress
-	return func() {
-		util.SuppressFastIPOutput = prev
-	}
-}
-
 func configureTracePrinters(conf *trace.Config, tablePrint, classicPrint, rawPrint bool, outputPath string) (func() error, error) {
 	if tablePrint {
 		return nil, nil
@@ -1152,18 +732,6 @@ func finalizeTraceResult(ctx context.Context, res *trace.Result, tablePrint, tab
 		fmt.Println(err)
 		return
 	}
-	if !disableMaptrace &&
-		(util.StringInSlice(strings.ToUpper(dataOrigin), []string{"LEOMOEAPI", "IPINFO", "IP-API.COM", "IPAPI.COM"})) {
-		url, err := tracemap.GetMapUrlWithContext(ctx, string(r))
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		res.TraceMapUrl = url
-		if !jsonPrint {
-			tracemap.PrintMapUrl(url)
-		}
-	}
 	r, err = json.Marshal(res)
 	if err != nil {
 		fmt.Println(err)
@@ -1175,10 +743,6 @@ func finalizeTraceResult(ctx context.Context, res *trace.Result, tablePrint, tab
 }
 
 func Execute() {
-	if handled, exitCode := maybeRunSpeedMode(os.Args[1:], os.Stdout, os.Stderr); handled {
-		os.Exit(exitCode)
-	}
-
 	parser := argparse.NewParser(appBinName, "An open source visual route tracking CLI tool")
 	// Override HelpFunc so positional arg names are sanitized in --help output
 	parser.HelpFunc = func(c *argparse.Command, msg interface{}) string {
@@ -1190,17 +754,15 @@ func Execute() {
 	tcp := parser.Flag("T", "tcp", &argparse.Options{Help: "Use TCP SYN for tracerouting (default dest-port is 80)"})
 	udp := parser.Flag("U", "udp", &argparse.Options{Help: "Use UDP SYN for tracerouting (default dest-port is 33494)"})
 	mtuMode := registerMTUFlag(parser)
-	fastTraceFlag := registerFastTraceFlag(parser)
 	port := parser.Int("p", "port", &argparse.Options{Help: "Set the destination port to use. With default of 80 for \"tcp\", 33494 for \"udp\""})
 	icmpMode := registerICMPModeFlag(parser)
 	numMeasurements := parser.Int("q", "queries", &argparse.Options{Default: 3, Help: buildQueriesHelp()})
 	maxAttempts := parser.Int("", "max-attempts", &argparse.Options{Help: buildMaxAttemptsHelp()})
 	parallelRequests := parser.Int("", "parallel-requests", &argparse.Options{Default: 18, Help: buildParallelRequestsHelp()})
 	maxHops := parser.Int("m", "max-hops", &argparse.Options{Default: 30, Help: "Set the max number of hops (max TTL to be reached)"})
-	dataOrigin := parser.Selector("d", "data-provider", []string{"IP.SB", "ip.sb", "IPInfo", "ipinfo", "IPInsight", "ipinsight", "IPAPI.com", "ip-api.com", "IPInfoLocal", "ipinfolocal", "chunzhen", "LeoMoeAPI", "leomoeapi", "ipdb.one", "disable-geoip"}, &argparse.Options{Default: "LeoMoeAPI",
-		Help: "Choose IP Geograph Data Provider [IP.SB, IPInfo, IPInsight, IP-API.com, IPInfoLocal, CHUNZHEN, disable-geoip]"})
-	powProvider := parser.Selector("", "pow-provider", []string{"api.nxtrace.org", "sakura"}, &argparse.Options{Default: "api.nxtrace.org",
-		Help: "Choose PoW Provider [api.nxtrace.org, sakura] For China mainland users, please use sakura"})
+	// dntrace is DN42-only: single built-in data source.
+	dataOrigin := "DN42"
+
 	norDNS := parser.Flag("n", "no-rdns", &argparse.Options{Help: "Do not resolve IP addresses to their domain names"})
 	alwaysrDNS := parser.Flag("a", "always-rdns", &argparse.Options{Help: "Always resolve IP addresses to their domain names"})
 	outputFlags := registerTracerouteOutputFlags(parser)
@@ -1210,24 +772,14 @@ func Execute() {
 	tablePrint := outputFlags.tablePrint
 	jsonPrint := outputFlags.jsonPrint
 	classicPrint := outputFlags.classicPrint
-	dn42 := parser.Flag("", "dn42", &argparse.Options{Help: "DN42 Mode"})
 	rawPrint := parser.Flag("", "raw", &argparse.Options{Help: buildRawHelp()})
 	beginHop := parser.Int("f", "first", &argparse.Options{Default: 1, Help: "Start from the first_ttl hop (instead of 1)"})
-	disableMaptrace := registerDisableMaptraceFlag(parser)
 	disableMPLS := parser.Flag("e", "disable-mpls", &argparse.Options{Help: "Disable MPLS"})
 	ver := parser.Flag("V", "version", &argparse.Options{Help: "Print version info and exit"})
-	setupNextTraceAPIV4Token := parser.Flag("x", "setup-api-v4-token", &argparse.Options{Help: "Store a session-only NextTrace API v4 token in a temporary file"})
-	speedMode := registerSpeedFlag(parser)
-	naliMode := registerNaliFlag(parser)
 	srcAddr := parser.String("s", "source", &argparse.Options{Help: "Use source address src_addr for outgoing packets"})
 	srcPort := parser.Int("", "source-port", &argparse.Options{Help: "Use source port src_port for outgoing packets"})
 	srcDev := parser.String("D", "dev", &argparse.Options{Help: "Use the specified network device for explicit source selection. On Windows, this selects the device source address; routing may still choose the egress interface"})
 
-	webFlags := registerWebUIFlags(parser)
-	deployListen := webFlags.deployListen
-	deployToken := webFlags.deployToken
-	deployMCP := webFlags.mcp
-	deploy := webFlags.deploy
 
 	//router := parser.Flag("R", "route", &argparse.Options{Help: "Show Routing Table [Provided By BGP.Tools]"})
 	// ── Send-time: hidden in ntr (always ignored in MTR mode) ──
@@ -1236,14 +788,12 @@ func Execute() {
 	timeout := parser.Int("", "timeout", &argparse.Options{Default: 1000, Help: buildTimeoutHelp()})
 	packetSize := parser.Int("", "psize", &argparse.Options{Help: buildPayloadSizeHelp()})
 	tos := parser.Int("Q", "tos", &argparse.Options{Default: 0, Help: buildTOSHelp()})
-	dot := parser.Selector("", "dot-server", []string{"dnssb", "aliyun", "dnspod", "google", "cloudflare"}, &argparse.Options{
-		Help: "Use DoT Server for DNS Parse [dnssb, aliyun, dnspod, google, cloudflare]"})
+
 	lang := parser.Selector("g", "language", []string{"en", "cn"}, &argparse.Options{Default: "cn",
 		Help: "Choose the language for displaying [en, cn]"})
 	noColor := parser.Flag("C", "no-color", &argparse.Options{Help: "Disable Colorful Output"})
 
 	// ── Globalping flag (full only) ──
-	from := registerGlobalpingFlag(parser)
 
 	// ── MTR flags (full & ntr only) ──
 	mtrFlags := registerMTRFlags(parser)
@@ -1264,77 +814,11 @@ func Execute() {
 		fmt.Print(sanitizeUsagePositionalArgs(parser.Usage(err)))
 		return
 	}
-	if *setupNextTraceAPIV4Token {
-		if err := runNextTraceAPIV4TokenSetup(nextTraceAPIV4TokenSetupOptions{
-			stdin:  os.Stdin,
-			stdout: os.Stdout,
-			stderr: os.Stderr,
-		}); err != nil {
-			os.Exit(handleNextTraceAPIV4TokenSetupError(os.Stderr, err))
-		}
-		return
-	}
 	rootCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	util.SrcDev = ""
 
 	mtrModes := deriveEffectiveMTRModes(*mtrMode, *reportMode, *wideMode, *rawPrint)
-	if *naliMode {
-		applyColorMode(*noColor)
-		if maybePrintVersion(*ver) {
-			return
-		}
-		if err := validateNaliModeOptions(buildNaliModeOptions(naliModeOptionInputs{
-			parser:        parser,
-			ipv4Only:      *ipv4Only,
-			ipv6Only:      *ipv6Only,
-			tcp:           *tcp,
-			udp:           *udp,
-			mtu:           *mtuMode,
-			mtrModes:      mtrModes,
-			raw:           *rawPrint,
-			table:         *tablePrint,
-			classic:       *classicPrint,
-			json:          *jsonPrint,
-			outputPath:    *outputPath,
-			outputDefault: *outputDefault,
-			routePath:     *routePath,
-			from:          *from,
-			deploy:        *deploy,
-			listen:        *deployListen,
-			fastTrace:     *fastTraceFlag,
-			file:          *file,
-			disableMPLS:   *disableMPLS,
-			noRDNS:        *norDNS,
-			alwaysRDNS:    *alwaysrDNS,
-			init:          *init,
-			srcAddr:       *srcAddr,
-			srcDev:        *srcDev,
-		})); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		if err := runNaliMode(rootCtx, naliRunOptions{
-			stdin:     os.Stdin,
-			stdout:    os.Stdout,
-			dn42:      *dn42,
-			data:      *dataOrigin,
-			dot:       *dot,
-			pow:       *powProvider,
-			lang:      *lang,
-			timeoutMs: *timeout,
-			ipv4Only:  *ipv4Only,
-			ipv6Only:  *ipv6Only,
-			target:    *str,
-		}); err != nil {
-			if errors.Is(err, context.Canceled) {
-				return
-			}
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		return
-	}
 	resolvedOutputPath, outputErr := resolveOutputPath(*outputPath, *outputDefault)
 	if outputErr != nil {
 		fmt.Println(outputErr)
@@ -1354,11 +838,7 @@ func Execute() {
 			*routePath,
 			*outputPath != "",
 			*outputDefault,
-			*deploy,
-			enableGlobalping,
-			*from,
 			*file,
-			*fastTraceFlag,
 		)
 		if conflict, ok := checkMTUConflicts(conflictFlags); !ok {
 			fmt.Printf("--mtu 不能与 %s 同时使用\n", conflict)
@@ -1377,10 +857,7 @@ func Execute() {
 			"output":        *outputPath != "",
 			"outputDefault": *outputDefault,
 			"routePath":     *routePath,
-			"from":          enableGlobalping && *from != "",
-			"fastTrace":     *fastTraceFlag,
 			"file":          *file != "",
-			"deploy":        enableWebUI && *deploy,
 		}
 		if conflict, ok := checkMTRConflicts(conflictFlags); !ok {
 			fmt.Printf("--mtr 不能与 %s 同时使用\n", conflict)
@@ -1395,21 +872,9 @@ func Execute() {
 	if shouldForceNoColorForMTUNonTTY(*mtuMode, *jsonPrint, stdoutIsTTY) {
 		*noColor = true
 	}
-	if err := validateDeployMCPMode(*deploy, *deployMCP); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	if handleStartupModes(*noColor, *jsonPrint, mtrModes, *ver, *deploy, *deployListen, *deployMCP, *deployToken, *init, osType) {
+	if handleStartupModes(*noColor, *jsonPrint, mtrModes, *ver, *init, osType) {
 		return
 	}
-	if *speedMode {
-		// maybeRunSpeedMode should handle --speed before parser.Parse runs. This
-		// branch is a safety net for parser edge cases such as a "--" terminator.
-		fmt.Fprintln(os.Stderr, "internal error: speed mode dispatch failed")
-		os.Exit(1)
-	}
-	restoreFastIPOutput := setFastIPOutputSuppression(*jsonPrint || mtrModes.mtr)
-	defer restoreFastIPOutput()
 
 	if *tos < 0 || *tos > 255 {
 		fmt.Println("--tos 必须在 0-255 之间")
@@ -1418,7 +883,6 @@ func Execute() {
 
 	applyDefaultPort(port, *udp)
 	clampProbeSettings(*tcp, numMeasurements, maxAttempts)
-	configureGeoDNS(*dot)
 
 	if *mtuMode {
 		if packetSizeExplicit {
@@ -1436,7 +900,7 @@ func Execute() {
 		if domain == "" {
 			return
 		}
-		ip, ok := lookupTargetIPOrExit(rootCtx, domain, *ipv4Only, *ipv6Only, *dot, *jsonPrint)
+		ip, ok := lookupTargetIPOrExit(rootCtx, domain, *ipv4Only, *ipv6Only, "", *jsonPrint)
 		if !ok {
 			return
 		}
@@ -1466,8 +930,7 @@ func Execute() {
 			fmt.Println(srcErr)
 			os.Exit(1)
 		}
-		leoWs := prepareRuntimeEnvironment(rootCtx, *dn42, dataOrigin, disableMaptrace, powProvider, false)
-		defer closeLeoWebsocket(leoWs)
+		prepareRuntimeEnvironment(rootCtx)
 		conf := buildMTUTraceConfig(
 			domain,
 			ip,
@@ -1482,7 +945,7 @@ func Execute() {
 			*ttlInterval,
 			!*norDNS,
 			*alwaysrDNS,
-			ipgeo.GetSource(*dataOrigin),
+			ipgeo.GetSource(dataOrigin),
 			*lang,
 		)
 		if err := runStandaloneMTUMode(conf, *jsonPrint); err != nil {
@@ -1494,89 +957,17 @@ func Execute() {
 	}
 
 	method := resolveTraceMethod(*tcp, *udp)
-	paramsFastTrace := fastTrace.ParamsFastTrace{
-		Context:        rootCtx,
-		OSType:         osType,
-		ICMPMode:       *icmpMode,
-		SrcDev:         *srcDev,
-		SrcAddr:        *srcAddr,
-		DstPort:        *port,
-		BeginHop:       *beginHop,
-		MaxHops:        *maxHops,
-		MaxAttempts:    *maxAttempts,
-		RDNS:           !*norDNS,
-		AlwaysWaitRDNS: *alwaysrDNS,
-		Lang:           *lang,
-		PktSize:        *packetSize,
-		PacketSizeSet:  packetSizeExplicit,
-		TOS:            *tos,
-		Timeout:        time.Duration(*timeout) * time.Millisecond,
-		File:           *file,
-		Dot:            *dot,
-		OutputPath:     resolvedOutputPath,
-	}
-	if maybeRunFastTraceMode(*from, *fastTraceFlag, *file, paramsFastTrace, method) {
-		return
-	}
 
 	domain := resolveCLITargetOrExit(*str, sanitizeUsagePositionalArgs(parser.Usage(err)))
 	if domain == "" {
 		return
 	}
 
-	asyncLeo := shouldUseAsyncLeoForMTR(mtrModes, CheckTTY(int(os.Stdin.Fd())), stdoutIsTTY)
-	leoWs := prepareRuntimeEnvironment(rootCtx, *dn42, dataOrigin, disableMaptrace, powProvider, asyncLeo)
-	defer closeLeoWebsocket(leoWs)
+	prepareRuntimeEnvironment(rootCtx)
 
-	if *from != "" {
-		if packetSizeExplicit {
-			fmt.Println("Globalping 模式不支持 --psize")
-			os.Exit(1)
-		}
-		if tosExplicit {
-			fmt.Println("Globalping 模式不支持 --tos")
-			os.Exit(1)
-		}
-	}
 
-	if maybeHandleGlobalping(
-		*from,
-		&trace.GlobalpingOptions{
-			Target:  *str,
-			From:    *from,
-			IPv4:    *ipv4Only,
-			IPv6:    *ipv6Only,
-			TCP:     *tcp,
-			UDP:     *udp,
-			Port:    *port,
-			Packets: *numMeasurements,
-			MaxHops: *maxHops,
 
-			DisableMaptrace: *disableMaptrace,
-			DataOrigin:      *dataOrigin,
-
-			TablePrint:   *tablePrint,
-			ClassicPrint: *classicPrint,
-			RawPrint:     *rawPrint,
-			JSONPrint:    *jsonPrint,
-			ClearScreen:  stdoutIsTTY,
-		},
-		&trace.Config{
-			Context:         rootCtx,
-			OSType:          osType,
-			DN42:            *dn42,
-			NumMeasurements: *numMeasurements,
-			Lang:            *lang,
-			RDNS:            !*norDNS,
-			AlwaysWaitRDNS:  *alwaysrDNS,
-			IPGeoSource:     ipgeo.GetSource(*dataOrigin),
-			Timeout:         time.Duration(*timeout) * time.Millisecond,
-		},
-	) {
-		return
-	}
-
-	ip, ok := lookupTargetIPOrExit(rootCtx, domain, *ipv4Only, *ipv6Only, *dot, *jsonPrint)
+	ip, ok := lookupTargetIPOrExit(rootCtx, domain, *ipv4Only, *ipv6Only, "", *jsonPrint)
 	if !ok {
 		return
 	}
@@ -1603,7 +994,7 @@ func Execute() {
 	}
 	resolvedSrcDev := sourceCfg.SourceDevice
 	effectivePacketSize := resolvePacketSizeArg(*packetSize, packetSizeExplicit, method, ip)
-	printTraceNav(*jsonPrint, mtrModes.mtr, ip, domain, *dataOrigin, *maxHops, effectivePacketSize, resolvedSrcAddr, method)
+	printTraceNav(*jsonPrint, mtrModes.mtr, ip, domain, dataOrigin, *maxHops, effectivePacketSize, resolvedSrcAddr, method)
 
 	packetSizeSpec, packetSizeErr := trace.NormalizePacketSize(method, ip, effectivePacketSize)
 	if packetSizeErr != nil {
@@ -1616,7 +1007,7 @@ func Execute() {
 	conf := buildTraceConfig(
 		osType,
 		*icmpMode,
-		*dn42,
+		true,
 		resolvedSrcAddr,
 		resolvedSrcDev,
 		*srcPort,
@@ -1632,7 +1023,7 @@ func Execute() {
 		*lang,
 		*norDNS,
 		*alwaysrDNS,
-		*dataOrigin,
+		dataOrigin,
 		*timeout,
 		packetSizeSpec.PayloadSize,
 		packetSizeSpec.Random,
@@ -1641,7 +1032,7 @@ func Execute() {
 	)
 	conf.Context = rootCtx
 
-	if maybeRunMTRMode(mtrModes, method, conf, queriesExplicit, *numMeasurements, ttlTimeExplicit, *ttlInterval, domain, *dataOrigin, *showIPs, *ipInfoMode) {
+	if maybeRunMTRMode(mtrModes, method, conf, queriesExplicit, *numMeasurements, ttlTimeExplicit, *ttlInterval, domain, dataOrigin, *showIPs, *ipInfoMode) {
 		return
 	}
 
@@ -1667,7 +1058,7 @@ func Execute() {
 		return
 	}
 
-	finalizeTraceResult(rootCtx, res, *tablePrint, stdoutIsTTY, *routePath, ip, *disableMaptrace, *jsonPrint, *dataOrigin)
+	finalizeTraceResult(rootCtx, res, *tablePrint, stdoutIsTTY, *routePath, ip, true, *jsonPrint, dataOrigin)
 }
 
 type mtrRunMode int
@@ -1688,14 +1079,6 @@ func chooseMTRRunMode(effectiveMTRRaw, effectiveReport bool) mtrRunMode {
 	return mtrRunTUI
 }
 
-func shouldUseAsyncLeoForMTR(modes effectiveMTRModes, stdinTTY bool, stdoutTTY bool) bool {
-	return modes.mtr && chooseMTRRunMode(modes.raw, modes.report) == mtrRunTUI && stdinTTY && stdoutTTY
-}
-
-// deriveMTRProbeParams computes per-hop scheduling parameters for MTR.
-//
-// maxPerHop priority: explicit -q > report default 10 > TUI/raw default 0 (unlimited).
-// hopIntervalMs priority: explicit -i > default 1000.
 func deriveMTRProbeParams(
 	effectiveReport, queriesExplicit bool, numMeasurements int,
 	ttlTimeExplicit bool, ttlInterval int,

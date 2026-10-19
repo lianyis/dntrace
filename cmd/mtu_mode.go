@@ -49,10 +49,8 @@ func normalizeMTUProtocolFlags(tcp, udp *bool) error {
 func buildMTUConflictFlags(
 	tcp, rawPrint bool,
 	mtrModes effectiveMTRModes,
-	tablePrint, classicPrint, routePath, outputPath, outputDefault, deploy bool,
-	globalping bool,
-	from, file string,
-	fastTrace bool,
+	tablePrint, classicPrint, routePath, outputPath, outputDefault bool,
+	file string,
 ) []mtuConflictFlag {
 	return []mtuConflictFlag{
 		{flag: "--tcp", enabled: tcp},
@@ -63,10 +61,7 @@ func buildMTUConflictFlags(
 		{flag: "--route-path", enabled: routePath},
 		{flag: "--output", enabled: outputPath},
 		{flag: "--output-default", enabled: outputDefault},
-		{flag: "--from", enabled: globalping && from != ""},
-		{flag: "--fast-trace", enabled: fastTrace},
 		{flag: "--file", enabled: file != ""},
-		{flag: "--deploy", enabled: deploy},
 	}
 }
 

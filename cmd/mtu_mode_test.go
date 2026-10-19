@@ -46,7 +46,7 @@ func TestCheckMTUConflicts(t *testing.T) {
 }
 
 func TestBuildMTUConflictFlagsIncludesOutputDefault(t *testing.T) {
-	flags := buildMTUConflictFlags(false, false, effectiveMTRModes{}, false, false, false, false, true, false, false, "", "", false)
+	flags := buildMTUConflictFlags(false, false, effectiveMTRModes{}, false, false, false, false, true, "")
 	conflict, ok := checkMTUConflicts(flags)
 	if ok {
 		t.Fatal("expected mtu conflict")
@@ -85,7 +85,7 @@ func TestBuildMTUTraceConfigCarriesResolvedSourceDevice(t *testing.T) {
 		300,
 		true,
 		false,
-		ipgeo.IPInfo,
+		ipgeo.DN42,
 		"en",
 	)
 	if conf.SourceDevice != "Ethernet0" {

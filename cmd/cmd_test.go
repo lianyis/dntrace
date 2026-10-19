@@ -12,7 +12,6 @@ import (
 	"github.com/lianyis/dntrace/trace"
 	"github.com/lianyis/dntrace/tracelog"
 	"github.com/lianyis/dntrace/util"
-	"github.com/lianyis/dntrace/wshandle"
 )
 
 func TestLookupTargetIPHonorsContextCancellation(t *testing.T) {
@@ -68,74 +67,6 @@ func TestLookupTargetIPOrExitReturnsFalseOnContextDeadline(t *testing.T) {
 	}
 }
 
-func TestInitLeoWebsocketSkipsV3WhenNextTraceAPIV4TokenConfigured(t *testing.T) {
-	t.Setenv(util.EnvNextTraceAPIV4TokenKey, "v4-token")
-	oldPrepare := prepareNextTraceAPIV4FastIPFn
-	oldNewLeo := newLeoWebsocketFn
-	var prepareCalls int
-	var wsCalls int
-	prepareNextTraceAPIV4FastIPFn = func(ctx context.Context, enableOutput bool) error {
-		prepareCalls++
-		if ctx == nil {
-			t.Fatal("PrepareNextTraceAPIV4FastIP context = nil")
-		}
-		if !enableOutput {
-			t.Fatal("PrepareNextTraceAPIV4FastIP enableOutput = false, want true")
-		}
-		return nil
-	}
-	newLeoWebsocketFn = func(context.Context) *wshandle.WsConn {
-		wsCalls++
-		return nil
-	}
-	t.Cleanup(func() {
-		prepareNextTraceAPIV4FastIPFn = oldPrepare
-		newLeoWebsocketFn = oldNewLeo
-	})
-	dataProvider := "LeoMoeAPI"
-	powProvider := "api.nxtrace.org"
-
-	if got := initLeoWebsocket(context.Background(), &dataProvider, &powProvider, false); got != nil {
-		t.Fatalf("initLeoWebsocket() = %+v, want nil when NextTrace API v4 token is configured", got)
-	}
-	if prepareCalls != 1 {
-		t.Fatalf("PrepareNextTraceAPIV4FastIP calls = %d, want 1", prepareCalls)
-	}
-	if wsCalls != 0 {
-		t.Fatalf("Leo WS calls = %d, want 0 when API v4 preheat succeeds", wsCalls)
-	}
-}
-
-func TestInitLeoWebsocketFallsBackToV3WhenAPIV4FastIPFails(t *testing.T) {
-	t.Setenv(util.EnvNextTraceAPIV4TokenKey, "v4-token")
-	oldPrepare := prepareNextTraceAPIV4FastIPFn
-	oldNewLeo := newLeoWebsocketFn
-	var prepareCalls int
-	var wsCalls int
-	prepareNextTraceAPIV4FastIPFn = func(context.Context, bool) error {
-		prepareCalls++
-		return errors.New("fastip unavailable")
-	}
-	newLeoWebsocketFn = func(context.Context) *wshandle.WsConn {
-		wsCalls++
-		return nil
-	}
-	t.Cleanup(func() {
-		prepareNextTraceAPIV4FastIPFn = oldPrepare
-		newLeoWebsocketFn = oldNewLeo
-	})
-	dataProvider := "LeoMoeAPI"
-	powProvider := "api.nxtrace.org"
-
-	_ = initLeoWebsocket(context.Background(), &dataProvider, &powProvider, false)
-	if prepareCalls != 1 {
-		t.Fatalf("PrepareNextTraceAPIV4FastIP calls = %d, want 1", prepareCalls)
-	}
-	if wsCalls != 1 {
-		t.Fatalf("Leo WS calls = %d, want 1 after API v4 preheat failure", wsCalls)
-	}
-}
-
 func TestMaybeRunUninterruptedRawReturnsOnCanceledContext(t *testing.T) {
 	oldUninterrupted := util.Uninterrupted
 	util.Uninterrupted = true
@@ -150,152 +81,6 @@ func TestMaybeRunUninterruptedRawReturnsOnCanceledContext(t *testing.T) {
 	}
 	if elapsed := time.Since(start); elapsed > 100*time.Millisecond {
 		t.Fatalf("maybeRunUninterruptedRaw returned too slowly after cancel: %v", elapsed)
-	}
-}
-
-func TestRegisterGlobalpingFlagWithAvailability_DisabledStillParses(t *testing.T) {
-	parser := argparse.NewParser("ntr", "")
-	from := registerGlobalpingFlagWithAvailability(parser, false)
-
-	if err := parser.Parse([]string{"ntr", "--from", "tokyo"}); err != nil {
-		t.Fatalf("Parse returned error: %v", err)
-	}
-	if got := strings.TrimSpace(*from); got != "tokyo" {
-		t.Fatalf("--from = %q, want tokyo", got)
-	}
-}
-
-func TestRegisterWebUIFlagsWithAvailability_DisabledDoesNotRegister(t *testing.T) {
-	parser := argparse.NewParser("ntr", "")
-	flags := registerWebUIFlagsWithAvailability(parser, false)
-
-	if err := parser.Parse([]string{"ntr", "--deploy"}); err == nil {
-		t.Fatal("Parse returned nil, want --deploy to be unregistered")
-	}
-	if *flags.deploy {
-		t.Fatal("disabled --deploy pointer should remain false")
-	}
-	if *flags.mcp {
-		t.Fatal("disabled --mcp pointer should remain false")
-	}
-	if got := strings.TrimSpace(*flags.deployListen); got != "" {
-		t.Fatalf("disabled --listen pointer = %q, want empty", got)
-	}
-	if got := strings.TrimSpace(*flags.deployToken); got != "" {
-		t.Fatalf("disabled --deploy-token pointer = %q, want empty", got)
-	}
-}
-
-func TestRegisterWebUIFlagsWithAvailability_EnabledParsesMCPAndToken(t *testing.T) {
-	parser := argparse.NewParser("nexttrace", "")
-	flags := registerWebUIFlagsWithAvailability(parser, true)
-
-	if err := parser.Parse([]string{"nexttrace", "--deploy", "--mcp", "--listen", "127.0.0.1:1080", "--deploy-token", "secret"}); err != nil {
-		t.Fatalf("Parse returned error: %v", err)
-	}
-	if !*flags.deploy || !*flags.mcp {
-		t.Fatalf("deploy=%t mcp=%t, want both true", *flags.deploy, *flags.mcp)
-	}
-	if got := strings.TrimSpace(*flags.deployListen); got != "127.0.0.1:1080" {
-		t.Fatalf("--listen = %q, want 127.0.0.1:1080", got)
-	}
-	if got := strings.TrimSpace(*flags.deployToken); got != "secret" {
-		t.Fatalf("--deploy-token = %q, want secret", got)
-	}
-}
-
-func TestMCPEndpointURLPrefersAccessAddress(t *testing.T) {
-	got := mcpEndpointURL(listenInfo{
-		Binding: "http://0.0.0.0:1080",
-		Access:  "http://192.0.2.10:1080",
-	})
-	if got != "http://192.0.2.10:1080/mcp" {
-		t.Fatalf("mcpEndpointURL wildcard = %q, want access endpoint", got)
-	}
-
-	got = mcpEndpointURL(listenInfo{Binding: "http://127.0.0.1:1080"})
-	if got != "http://127.0.0.1:1080/mcp" {
-		t.Fatalf("mcpEndpointURL loopback = %q, want binding endpoint", got)
-	}
-}
-
-func TestValidateDeployMCPModeRequiresDeploy(t *testing.T) {
-	if err := validateDeployMCPMode(false, true); err == nil {
-		t.Fatal("validateDeployMCPMode(false, true) error = nil, want error")
-	}
-	if err := validateDeployMCPMode(true, true); err != nil {
-		t.Fatalf("validateDeployMCPMode(true, true) error = %v", err)
-	}
-	if err := validateDeployMCPMode(false, false); err != nil {
-		t.Fatalf("validateDeployMCPMode(false, false) error = %v", err)
-	}
-}
-
-func TestDeployListenRequiresToken(t *testing.T) {
-	tests := []struct {
-		addr string
-		want bool
-	}{
-		{"127.0.0.1:1080", false},
-		{"[::1]:1080", false},
-		{"localhost:1080", false},
-		{"0.0.0.0:1080", true},
-		{"[::]:1080", true},
-		{":1080", true},
-		{"192.0.2.10:1080", true},
-		{"example.com:1080", true},
-	}
-	for _, tt := range tests {
-		if got := deployListenRequiresToken(tt.addr); got != tt.want {
-			t.Fatalf("deployListenRequiresToken(%q) = %t, want %t", tt.addr, got, tt.want)
-		}
-	}
-}
-
-func TestResolveDeployAuthPlan(t *testing.T) {
-	oldEnvToken := util.EnvDeployToken
-	util.EnvDeployToken = ""
-	defer func() { util.EnvDeployToken = oldEnvToken }()
-
-	loopback, err := resolveDeployAuthPlan("127.0.0.1:1080", "")
-	if err != nil {
-		t.Fatalf("resolveDeployAuthPlan(loopback) error = %v", err)
-	}
-	if loopback.Enabled {
-		t.Fatalf("loopback plan enabled = true, want false")
-	}
-
-	external, err := resolveDeployAuthPlan("0.0.0.0:1080", "")
-	if err != nil {
-		t.Fatalf("resolveDeployAuthPlan(external) error = %v", err)
-	}
-	if !external.Enabled || !external.AutoGenerated || strings.TrimSpace(external.Token) == "" {
-		t.Fatalf("external plan = %+v, want enabled autogenerated token", external)
-	}
-
-	manual, err := resolveDeployAuthPlan("127.0.0.1:1080", "manual-token")
-	if err != nil {
-		t.Fatalf("resolveDeployAuthPlan(manual) error = %v", err)
-	}
-	if !manual.Enabled || manual.AutoGenerated || manual.Token != "manual-token" {
-		t.Fatalf("manual plan = %+v, want manual token auth", manual)
-	}
-
-	util.EnvDeployToken = "env-token"
-	envPlan, err := resolveDeployAuthPlan("127.0.0.1:1080", "")
-	if err != nil {
-		t.Fatalf("resolveDeployAuthPlan(env) error = %v", err)
-	}
-	if !envPlan.Enabled || envPlan.Token != "env-token" {
-		t.Fatalf("env plan = %+v, want env token auth", envPlan)
-	}
-
-	cliPlan, err := resolveDeployAuthPlan("127.0.0.1:1080", "cli-token")
-	if err != nil {
-		t.Fatalf("resolveDeployAuthPlan(cli) error = %v", err)
-	}
-	if cliPlan.Token != "cli-token" {
-		t.Fatalf("cli plan token = %q, want cli-token", cliPlan.Token)
 	}
 }
 
@@ -519,20 +304,6 @@ func TestResolveOutputPath(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestSetFastIPOutputSuppressionRestoresPreviousValue(t *testing.T) {
-	orig := util.SuppressFastIPOutput
-	util.SuppressFastIPOutput = false
-	restore := setFastIPOutputSuppression(true)
-	if !util.SuppressFastIPOutput {
-		t.Fatal("SuppressFastIPOutput should be true after suppression")
-	}
-	restore()
-	if util.SuppressFastIPOutput != false {
-		t.Fatalf("SuppressFastIPOutput = %v, want false", util.SuppressFastIPOutput)
-	}
-	util.SuppressFastIPOutput = orig
 }
 
 func TestResolveConfiguredSrcAddrPrefersExplicitSource(t *testing.T) {

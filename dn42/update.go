@@ -18,8 +18,8 @@ import (
 // DefaultSources are the dataset mirrors, tried in race order.
 // The first URL is DN42-internal, the second is clearnet.
 var DefaultSources = []string{
-	"http://geofeed.lianyi.dn42/dntrace/",
-	"http://dn42.lianyi.me/dntrace/",
+	"http://lianyi.dn42/dntrace/",
+	"https://dn42.lianyi.me/dntrace/",
 }
 
 const (

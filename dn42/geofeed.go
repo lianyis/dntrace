@@ -89,6 +89,10 @@ func loadSnapshot() error {
 	return nil
 }
 
+// LoadSnapshot loads the embedded build-time dataset into memory.
+// Exported for tests and for explicit offline use.
+func LoadSnapshot() error { return loadSnapshot() }
+
 // loadFile loads the dataset from a CSV file on disk.
 func loadFile(path string) error {
 	f, err := os.Open(path)
