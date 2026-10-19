@@ -1,6 +1,7 @@
 package ipgeo
 
 import (
+	"strings"
 	"time"
 )
 
@@ -27,9 +28,12 @@ type IPGeoData struct {
 
 type Source = func(ip string, timeout time.Duration, lang string, maptrace bool) (*IPGeoData, error)
 
-// GetSource returns the DN42 source. dntrace is DN42-only; the name
-// argument is kept for call-site compatibility and ignored.
-func GetSource(_ string) Source {
+// GetSource returns the DN42 source, or the no-op source when asked to
+// disable GeoIP. dntrace is DN42-only; any other name maps to DN42.
+func GetSource(name string) Source {
+	if strings.EqualFold(name, "disable-geoip") {
+		return disableGeoIP
+	}
 	return DN42
 }
 
