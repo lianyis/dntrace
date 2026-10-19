@@ -15,6 +15,8 @@ IP Geo Data Provider: DN42
 
 No flags needed for DN42: every hop shows **IP, AS number, maintainer (MNT), PTR hostname and latency**. Country/city columns and all clearnet GeoIP providers were removed.
 
+Only `172.20.0.0/14` and `fd00::/8` get attribution — underlay addresses traceroute traverses (provider private networks, tailscale, public IPs) are shown without AS/MNT rather than misattributed.
+
 ## How the data works
 
 Per-hop attribution comes from a geofeed CSV generated from the DN42 registry (`inetnum`/`inet6num` + `route`/`route6` objects). On startup dntrace:

@@ -49,14 +49,24 @@ func TestGetGeoFeedLongestMatch(t *testing.T) {
 	if !ok || row.ASN != "4242420000" {
 		t.Fatalf("wrong row: %+v %v", row, ok)
 	}
-	// row without ASN keeps MNT
+	// 10/8 registry rows exist but are never attributed (not DN42 space)
 	row, ok = GetGeoFeed("10.1.2.3")
-	if !ok || row.ASN != "" || row.MNT != "DN42-MNT" {
-		t.Fatalf("wrong row: %+v %v", row, ok)
+	if ok {
+		t.Fatalf("10/8 must not match: %+v", row)
 	}
 	// no match
 	if _, ok = GetGeoFeed("192.0.2.1"); ok {
 		t.Fatal("unexpected match")
+	}
+	// non-DN42 space never matches, even with a covering registry row
+	if _, ok = GetGeoFeed("10.10.15.1"); ok {
+		t.Fatal("underlay RFC1918 must not match")
+	}
+	if _, ok = GetGeoFeed("192.168.1.1"); ok {
+		t.Fatal("underlay RFC1918 must not match")
+	}
+	if _, ok = GetGeoFeed("100.100.100.9"); ok {
+		t.Fatal("tailscale CGNAT must not match")
 	}
 	// invalid ip
 	if _, ok = GetGeoFeed("not-an-ip"); ok {

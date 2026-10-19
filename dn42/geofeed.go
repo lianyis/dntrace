@@ -26,7 +26,20 @@ type GeoFeedRow struct {
 var (
 	mu   sync.RWMutex
 	rows []GeoFeedRow // sorted by prefix length, longest first
+
+	// DN42 address space. Only IPs inside these ranges get attribution;
+	// underlay private addresses (e.g. a VPS provider's 10.x network that
+	// traceroute traverses first) must never be misattributed.
+	dn42v4, _ = parseCIDR("172.20.0.0/14")
+	dn42v6, _ = parseCIDR("fd00::/8")
 )
+
+func parseCIDR(s string) (*net.IPNet, error) {
+	_, ipnet, err := net.ParseCIDR(s)
+	return ipnet, err
+}
+
+// isDN42Space reports whether ip belongs to DN42 address space.
 
 // parseCSV parses the 4-column geofeed format, skipping # comment lines.
 func parseCSV(r io.Reader) ([]GeoFeedRow, error) {
@@ -111,9 +124,14 @@ func loadFile(path string) error {
 }
 
 // GetGeoFeed returns the longest-prefix-match row for ip, or false.
+// IPs outside DN42 space never match, even if the registry happens to
+// contain a covering prefix (e.g. ICVPN 10/8 imports vs. underlay RFC1918).
 func GetGeoFeed(ipStr string) (GeoFeedRow, bool) {
 	ip := net.ParseIP(strings.TrimSpace(ipStr))
 	if ip == nil {
+		return GeoFeedRow{}, false
+	}
+	if !dn42v4.Contains(ip) && !dn42v6.Contains(ip) {
 		return GeoFeedRow{}, false
 	}
 	mu.RLock()
