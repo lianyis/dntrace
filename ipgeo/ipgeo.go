@@ -1,10 +1,7 @@
 package ipgeo
 
 import (
-	"strings"
 	"time"
-
-	"github.com/lianyis/dntrace/util"
 )
 
 type IPGeoData struct {
@@ -30,46 +27,10 @@ type IPGeoData struct {
 
 type Source = func(ip string, timeout time.Duration, lang string, maptrace bool) (*IPGeoData, error)
 
-func GetSource(s string) Source {
-	switch strings.ToUpper(s) {
-	case "DN42":
-		return DN42
-	case "LEOMOEAPI":
-		return LeoMoeAPISource()
-	case "IP.SB":
-		return IPSB
-	case "IPINSIGHT":
-		return IPInSight
-	case "IPAPI.COM":
-		return IPApiCom
-	case "IP-API.COM":
-		return IPApiCom
-	case "IPINFO":
-		return IPInfo
-	case "IPINFOLOCAL":
-		return IPInfoLocal
-	case "CHUNZHEN":
-		return Chunzhen
-	case "DISABLE-GEOIP":
-		return disableGeoIP
-	case "IPDB.ONE":
-		return IPDBOne
-	default:
-		return LeoMoeAPISource()
-	}
-}
-
-func GetSourceWithGeoDNS(s string, dotServer string) Source {
-	base := GetSource(s)
-	dotServer = strings.TrimSpace(strings.ToLower(dotServer))
-	if base == nil || dotServer == "" {
-		return base
-	}
-	return func(ip string, timeout time.Duration, lang string, maptrace bool) (*IPGeoData, error) {
-		return util.WithGeoDNSResolver(dotServer, func() (*IPGeoData, error) {
-			return base(ip, timeout, lang, maptrace)
-		})
-	}
+// GetSource returns the DN42 source. dntrace is DN42-only; the name
+// argument is kept for call-site compatibility and ignored.
+func GetSource(_ string) Source {
+	return DN42
 }
 
 func disableGeoIP(string, time.Duration, string, bool) (*IPGeoData, error) {

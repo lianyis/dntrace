@@ -1,105 +1,130 @@
 package dn42
 
 import (
+	_ "embed"
 	"encoding/csv"
-	"fmt"
+	"io"
 	"net"
 	"os"
 	"sort"
-
-	"github.com/spf13/viper"
+	"strings"
+	"sync"
 )
 
+//go:embed geofeed.snapshot.csv
+var snapshotCSV string
+
+// GeoFeedRow is one row of the dntrace geofeed dataset:
+// prefix,asn,mnt,descr  (e.g. 172.21.113.128/27,4242421886,LY-MNT,LY-IPV4)
 type GeoFeedRow struct {
-	IPNet   *net.IPNet
-	CIDR    string
-	LtdCode string
-	ISO3166 string
-	City    string
-	ASN     string
-	IPWhois string
+	IPNet *net.IPNet
+	ASN   string
+	MNT   string
+	Descr string
 }
 
-func GetGeoFeed(ip string) (GeoFeedRow, bool) {
-	rows, err := ReadGeoFeed()
-	if err != nil {
-		// 无法加载 geofeed 数据，返回未找到
-		return GeoFeedRow{}, false
-	}
+var (
+	mu   sync.RWMutex
+	rows []GeoFeedRow // sorted by prefix length, longest first
+)
 
-	row, find := FindGeoFeedRow(ip, rows)
-	return row, find
-
-}
-
-func ReadGeoFeed() ([]GeoFeedRow, error) {
-	path := viper.GetString("geoFeedPath")
-	if path == "" {
-		return nil, fmt.Errorf("geoFeedPath not configured")
-	}
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
-	rows, err := r.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-
-	// 将 CSV 中的每一行转换为 GeoFeedRow 类型，并保存到 rowsSlice 中
-	var rowsSlice []GeoFeedRow
-	for _, row := range rows {
-		cidr := row[0] // 假设第一列是 CIDR 字段
-		_, ipnet, err := net.ParseCIDR(cidr)
+// parseCSV parses the 4-column geofeed format, skipping # comment lines.
+func parseCSV(r io.Reader) ([]GeoFeedRow, error) {
+	cr := csv.NewReader(r)
+	cr.FieldsPerRecord = -1
+	var out []GeoFeedRow
+	for {
+		rec, err := cr.Read()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
-			// 如果解析 CIDR 失败，跳过这一行
+			return nil, err
+		}
+		if len(rec) == 0 {
 			continue
 		}
-		if len(row) == 4 {
-			rowsSlice = append(rowsSlice, GeoFeedRow{
-				IPNet:   ipnet,
-				CIDR:    cidr,
-				LtdCode: row[1],
-				ISO3166: row[2],
-				City:    row[3],
-			})
-		} else if len(row) >= 6 {
-			rowsSlice = append(rowsSlice, GeoFeedRow{
-				IPNet:   ipnet,
-				CIDR:    cidr,
-				LtdCode: row[1],
-				ISO3166: row[2],
-				City:    row[3],
-				ASN:     row[4],
-				IPWhois: row[5],
-			})
+		if strings.HasPrefix(strings.TrimSpace(rec[0]), "#") {
+			continue
 		}
-
+		if len(rec) < 4 {
+			continue
+		}
+		_, ipnet, err := net.ParseCIDR(strings.TrimSpace(rec[0]))
+		if err != nil {
+			continue
+		}
+		out = append(out, GeoFeedRow{
+			IPNet: ipnet,
+			ASN:   strings.TrimSpace(rec[1]),
+			MNT:   strings.TrimSpace(rec[2]),
+			Descr: strings.TrimSpace(rec[3]),
+		})
 	}
-	// 根据 CIDR 范围从小到大排序，方便后面查找
-	sort.Slice(rowsSlice, func(i, j int) bool {
-		return rowsSlice[i].IPNet.Mask.String() > rowsSlice[j].IPNet.Mask.String()
+	// longest prefix first for LPM
+	sort.Slice(out, func(i, j int) bool {
+		oi, oj := ones(out[i].IPNet.Mask), ones(out[j].IPNet.Mask)
+		if oi != oj {
+			return oi > oj
+		}
+		return out[i].IPNet.String() < out[j].IPNet.String()
 	})
-
-	return rowsSlice, nil
+	return out, nil
 }
 
-func FindGeoFeedRow(ipStr string, rows []GeoFeedRow) (GeoFeedRow, bool) {
-	ip := net.ParseIP(ipStr)
+func ones(m net.IPMask) int {
+	o, _ := m.Size()
+	return o
+}
+
+// loadSnapshot loads the build-time embedded dataset.
+func loadSnapshot() error {
+	parsed, err := parseCSV(strings.NewReader(snapshotCSV))
+	if err != nil {
+		return err
+	}
+	mu.Lock()
+	rows = parsed
+	mu.Unlock()
+	return nil
+}
+
+// loadFile loads the dataset from a CSV file on disk.
+func loadFile(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	parsed, err := parseCSV(f)
+	if err != nil {
+		return err
+	}
+	mu.Lock()
+	rows = parsed
+	mu.Unlock()
+	return nil
+}
+
+// GetGeoFeed returns the longest-prefix-match row for ip, or false.
+func GetGeoFeed(ipStr string) (GeoFeedRow, bool) {
+	ip := net.ParseIP(strings.TrimSpace(ipStr))
 	if ip == nil {
-		// 如果传入的 IP 无效，直接返回
 		return GeoFeedRow{}, false
 	}
-
-	// 遍历每个 CIDR 范围，找到第一个包含传入的 IP 的 CIDR
+	mu.RLock()
+	defer mu.RUnlock()
 	for _, row := range rows {
 		if row.IPNet.Contains(ip) {
 			return row, true
 		}
 	}
-
 	return GeoFeedRow{}, false
+}
+
+// RowCount returns the number of loaded rows (for diagnostics/tests).
+func RowCount() int {
+	mu.RLock()
+	defer mu.RUnlock()
+	return len(rows)
 }
