@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider"
+	"github.com/lianyis/dntrace/internal/speedtest/provider"
 )
 
 const DefaultUserAgent = "networkQuality/194.80.3 CFNetwork/3860.400.51 Darwin/25.3.0"

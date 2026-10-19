@@ -8,7 +8,7 @@ import (
 
 	"github.com/tsosunchia/powclient"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 const (

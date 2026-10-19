@@ -10,10 +10,10 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/printer"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/tracemap"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/printer"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/tracemap"
+	"github.com/lianyis/dntrace/util"
 )
 
 func handleGlobalpingTrace(opts *trace.GlobalpingOptions, config *trace.Config) {

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/trace/internal"
+	"github.com/lianyis/dntrace/trace/internal"
 )
 
 // ---------------------------------------------------------------------------

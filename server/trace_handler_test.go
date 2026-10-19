@@ -12,8 +12,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/util"
 )
 
 func TestPrepareTrace_DoesNotForceLegacyInterval(t *testing.T) {

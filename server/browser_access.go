@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 const (

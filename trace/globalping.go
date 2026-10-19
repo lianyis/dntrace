@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/jsdelivr/globalping-cli/globalping"
-	_config "github.com/nxtrace/NTrace-core/config"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/util"
+	_config "github.com/lianyis/dntrace/config"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/util"
 )
 
 func GlobalpingTraceroute(opts *GlobalpingOptions, config *Config) (*Result, *globalping.Measurement, error) {

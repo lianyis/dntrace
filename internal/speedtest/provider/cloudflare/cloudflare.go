@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider"
+	"github.com/lianyis/dntrace/internal/speedtest/provider"
 )
 
 const DefaultUserAgent = "NextTrace-Speed/1"

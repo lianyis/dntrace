@@ -11,8 +11,8 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/nxtrace/NTrace-core/config"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/config"
+	"github.com/lianyis/dntrace/util"
 )
 
 // LangMap shows language mapping for IPDB.One API

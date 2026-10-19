@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 func TestRunNextTraceAPIV4TokenSetupWritesSessionTokenFile(t *testing.T) {

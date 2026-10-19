@@ -4,7 +4,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 type mtrMetadataPatch struct {

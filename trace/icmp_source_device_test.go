@@ -3,7 +3,7 @@ package trace
 import (
 	"testing"
 
-	"github.com/nxtrace/NTrace-core/trace/internal"
+	"github.com/lianyis/dntrace/trace/internal"
 )
 
 func TestApplyICMPSourceDevicePropagatesOnNonWindows(t *testing.T) {

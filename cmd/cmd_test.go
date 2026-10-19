@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/akamensky/argparse"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/tracelog"
-	"github.com/nxtrace/NTrace-core/util"
-	"github.com/nxtrace/NTrace-core/wshandle"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/tracelog"
+	"github.com/lianyis/dntrace/util"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 func TestLookupTargetIPHonorsContextCancellation(t *testing.T) {

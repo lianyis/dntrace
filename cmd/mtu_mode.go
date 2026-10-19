@@ -14,10 +14,10 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/printer"
-	mtutrace "github.com/nxtrace/NTrace-core/trace/mtu"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/printer"
+	mtutrace "github.com/lianyis/dntrace/trace/mtu"
+	"github.com/lianyis/dntrace/util"
 )
 
 const mtuWindowsOSType = 2

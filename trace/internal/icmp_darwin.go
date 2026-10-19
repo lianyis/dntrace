@@ -15,7 +15,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 )

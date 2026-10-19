@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 func Chunzhen(ip string, timeout time.Duration, _ string, _ bool) (*IPGeoData, error) {

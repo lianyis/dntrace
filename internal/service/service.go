@@ -12,15 +12,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/config"
-	"github.com/nxtrace/NTrace-core/internal/nali"
-	speedconfig "github.com/nxtrace/NTrace-core/internal/speedtest/config"
-	speedrunner "github.com/nxtrace/NTrace-core/internal/speedtest/runner"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
-	mtutrace "github.com/nxtrace/NTrace-core/trace/mtu"
-	"github.com/nxtrace/NTrace-core/util"
-	"github.com/nxtrace/NTrace-core/wshandle"
+	"github.com/lianyis/dntrace/config"
+	"github.com/lianyis/dntrace/internal/nali"
+	speedconfig "github.com/lianyis/dntrace/internal/speedtest/config"
+	speedrunner "github.com/lianyis/dntrace/internal/speedtest/runner"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
+	mtutrace "github.com/lianyis/dntrace/trace/mtu"
+	"github.com/lianyis/dntrace/util"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 const (

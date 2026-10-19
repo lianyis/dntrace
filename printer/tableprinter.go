@@ -9,8 +9,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
 )
 
 type rowData struct {

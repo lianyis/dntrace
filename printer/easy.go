@@ -3,8 +3,8 @@ package printer
 import (
 	"fmt"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
 )
 
 func EasyPrinter(res *trace.Result, ttl int) {

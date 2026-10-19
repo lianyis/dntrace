@@ -12,7 +12,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 	wd "github.com/xjasonlyu/windivert-go"
 )
 

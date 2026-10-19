@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/wshandle"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 func TestLeoIPWaitsForConnectionBeforeSending(t *testing.T) {

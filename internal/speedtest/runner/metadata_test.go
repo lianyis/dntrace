@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	speedconfig "github.com/nxtrace/NTrace-core/internal/speedtest/config"
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	speedconfig "github.com/lianyis/dntrace/internal/speedtest/config"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 var geoLookupMu sync.Mutex

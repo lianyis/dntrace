@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/util"
 )
 
 const mtuTimeoutGeoSource = "timeout"

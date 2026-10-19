@@ -16,13 +16,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/nxtrace/NTrace-core/config"
-	"github.com/nxtrace/NTrace-core/internal/service"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/tracemap"
-	"github.com/nxtrace/NTrace-core/util"
-	"github.com/nxtrace/NTrace-core/wshandle"
+	"github.com/lianyis/dntrace/config"
+	"github.com/lianyis/dntrace/internal/service"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/tracemap"
+	"github.com/lianyis/dntrace/util"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 var traceMu = &service.RuntimeMu

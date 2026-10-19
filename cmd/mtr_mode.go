@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/config"
-	"github.com/nxtrace/NTrace-core/printer"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/config"
+	"github.com/lianyis/dntrace/printer"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/util"
 )
 
 const defaultMTRInternalTTLIntervalMs = 0

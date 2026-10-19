@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 func parseSocketICMPMessage(ipVersion int, raw []byte) (*icmp.Message, bool) {

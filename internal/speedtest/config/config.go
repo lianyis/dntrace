@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nxtrace/NTrace-core/internal/speedtest"
+	"github.com/lianyis/dntrace/internal/speedtest"
 )
 
 const (

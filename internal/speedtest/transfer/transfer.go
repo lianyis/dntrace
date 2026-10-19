@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider"
+	"github.com/lianyis/dntrace/internal/speedtest/provider"
 )
 
 type Direction string

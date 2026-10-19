@@ -13,7 +13,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/nxtrace/NTrace-core/internal/service"
+	"github.com/lianyis/dntrace/internal/service"
 )
 
 type recordingMCPService struct {

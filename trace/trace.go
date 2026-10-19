@@ -16,9 +16,9 @@ import (
 	"golang.org/x/sync/semaphore"
 	"golang.org/x/sync/singleflight"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace/internal"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace/internal"
+	"github.com/lianyis/dntrace/util"
 )
 
 var (

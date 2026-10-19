@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 func TestAnnotateLineIPv4AndCache(t *testing.T) {

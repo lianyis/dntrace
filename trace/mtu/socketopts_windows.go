@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 	"golang.org/x/sys/windows"
 )
 

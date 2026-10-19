@@ -11,7 +11,7 @@ import (
 	"github.com/mattn/go-runewidth"
 	"golang.org/x/term"
 
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/trace"
 )
 
 // ---------------------------------------------------------------------------

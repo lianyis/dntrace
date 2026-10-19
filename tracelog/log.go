@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nxtrace/NTrace-core/internal/hoprender"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/internal/hoprender"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
 )
 
 var DefaultPath = filepath.Join(os.TempDir(), "trace.log")

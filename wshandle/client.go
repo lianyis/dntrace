@@ -16,8 +16,8 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/nxtrace/NTrace-core/pow"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/pow"
+	"github.com/lianyis/dntrace/util"
 )
 
 func formatHostPort(addr, port string) string {

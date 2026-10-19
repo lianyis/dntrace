@@ -7,10 +7,10 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/internal/hoprender"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/internal/hoprender"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/util"
 )
 
 func printRealtimeTTL(ttl int) {

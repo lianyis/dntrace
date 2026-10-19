@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/trace"
 )
 
 const MTRHistoryWindow = 3 * time.Minute

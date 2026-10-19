@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nxtrace/NTrace-core/cmd"
+	"github.com/lianyis/dntrace/cmd"
 )
 
 func main() {

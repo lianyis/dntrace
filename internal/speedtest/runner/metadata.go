@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	speedconfig "github.com/nxtrace/NTrace-core/internal/speedtest/config"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/result"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/printer"
-	"github.com/nxtrace/NTrace-core/trace"
+	speedconfig "github.com/lianyis/dntrace/internal/speedtest/config"
+	"github.com/lianyis/dntrace/internal/speedtest/result"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/printer"
+	"github.com/lianyis/dntrace/trace"
 )
 
 const (

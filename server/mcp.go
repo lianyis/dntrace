@@ -7,8 +7,8 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/nxtrace/NTrace-core/config"
-	"github.com/nxtrace/NTrace-core/internal/service"
+	"github.com/lianyis/dntrace/config"
+	"github.com/lianyis/dntrace/internal/service"
 )
 
 type nexttraceMCPService interface {

@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 type Event string

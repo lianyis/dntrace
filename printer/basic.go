@@ -7,9 +7,9 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/config"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/config"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/util"
 )
 
 var version = config.Version

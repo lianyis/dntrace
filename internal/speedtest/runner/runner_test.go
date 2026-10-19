@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	speedconfig "github.com/nxtrace/NTrace-core/internal/speedtest/config"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/netx"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider/apple"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider/cloudflare"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/result"
+	speedconfig "github.com/lianyis/dntrace/internal/speedtest/config"
+	"github.com/lianyis/dntrace/internal/speedtest/netx"
+	"github.com/lianyis/dntrace/internal/speedtest/provider"
+	"github.com/lianyis/dntrace/internal/speedtest/provider/apple"
+	"github.com/lianyis/dntrace/internal/speedtest/provider/cloudflare"
+	"github.com/lianyis/dntrace/internal/speedtest/result"
 )
 
 func TestResolveLocalBindIPPrefersExplicitSource(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/internal/hoprender"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/internal/hoprender"
+	"github.com/lianyis/dntrace/trace"
 )
 
 func RealtimePrinterWithRouter(res *trace.Result, ttl int) {

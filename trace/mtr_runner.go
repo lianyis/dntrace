@@ -12,8 +12,8 @@ import (
 
 	"github.com/google/gopacket/layers"
 
-	"github.com/nxtrace/NTrace-core/trace/internal"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/trace/internal"
+	"github.com/lianyis/dntrace/util"
 )
 
 // ---------------------------------------------------------------------------

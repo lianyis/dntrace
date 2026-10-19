@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/util"
 )
 
 func TestCheckMTRConflicts_NoConflict(t *testing.T) {

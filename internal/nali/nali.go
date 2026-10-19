@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 type Family int

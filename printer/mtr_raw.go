@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/trace"
 )
 
 // FormatMTRRawLine formats one MTR raw stream record with fixed 12 columns:

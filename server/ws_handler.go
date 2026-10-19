@@ -15,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/trace"
 )
 
 var traceUpgrader = websocket.Upgrader{

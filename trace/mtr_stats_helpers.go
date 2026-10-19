@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 type mtrHopGroup struct {

@@ -21,17 +21,17 @@ import (
 	"github.com/akamensky/argparse"
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/assets/windivert"
-	"github.com/nxtrace/NTrace-core/config"
-	fastTrace "github.com/nxtrace/NTrace-core/fast_trace"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/printer"
-	"github.com/nxtrace/NTrace-core/reporter"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/tracelog"
-	"github.com/nxtrace/NTrace-core/tracemap"
-	"github.com/nxtrace/NTrace-core/util"
-	"github.com/nxtrace/NTrace-core/wshandle"
+	"github.com/lianyis/dntrace/assets/windivert"
+	"github.com/lianyis/dntrace/config"
+	fastTrace "github.com/lianyis/dntrace/fast_trace"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/printer"
+	"github.com/lianyis/dntrace/reporter"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/tracelog"
+	"github.com/lianyis/dntrace/tracemap"
+	"github.com/lianyis/dntrace/util"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 func ptrBool(v bool) *bool    { return &v }

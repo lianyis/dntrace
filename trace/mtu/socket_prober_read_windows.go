@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	traceinternal "github.com/nxtrace/NTrace-core/trace/internal"
-	"github.com/nxtrace/NTrace-core/util"
+	traceinternal "github.com/lianyis/dntrace/trace/internal"
+	"github.com/lianyis/dntrace/util"
 	wd "github.com/xjasonlyu/windivert-go"
 )
 

@@ -10,7 +10,7 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/nxtrace/NTrace-core/wshandle"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 /***

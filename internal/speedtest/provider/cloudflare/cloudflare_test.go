@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider"
+	"github.com/lianyis/dntrace/internal/speedtest/provider"
 )
 
 func TestCloudflareRequestsCarryExpectedQueryParameters(t *testing.T) {

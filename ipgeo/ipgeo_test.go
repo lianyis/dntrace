@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

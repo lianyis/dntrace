@@ -3,10 +3,10 @@ package service
 import (
 	"time"
 
-	speedresult "github.com/nxtrace/NTrace-core/internal/speedtest/result"
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
-	mtutrace "github.com/nxtrace/NTrace-core/trace/mtu"
+	speedresult "github.com/lianyis/dntrace/internal/speedtest/result"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
+	mtutrace "github.com/lianyis/dntrace/trace/mtu"
 )
 
 type CapabilitiesRequest struct{}

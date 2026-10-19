@@ -11,10 +11,10 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
-	"github.com/nxtrace/NTrace-core/util"
-	"github.com/nxtrace/NTrace-core/wshandle"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
+	"github.com/lianyis/dntrace/util"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 //var pFastTracer ParamsFastTrace

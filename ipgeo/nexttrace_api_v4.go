@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 	"golang.org/x/net/http/httpproxy"
 )
 

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
 )
 
 var testResult = &trace.Result{

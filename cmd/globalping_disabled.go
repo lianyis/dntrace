@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/trace"
 )
 
 func handleGlobalpingTrace(_ *trace.GlobalpingOptions, _ *trace.Config) {

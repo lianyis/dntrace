@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"net"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 const (

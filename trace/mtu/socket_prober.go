@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	traceinternal "github.com/nxtrace/NTrace-core/trace/internal"
-	"github.com/nxtrace/NTrace-core/util"
+	traceinternal "github.com/lianyis/dntrace/trace/internal"
+	"github.com/lianyis/dntrace/util"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 )

@@ -12,7 +12,7 @@ import (
 
 	"github.com/oschwald/maxminddb-golang"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 const (

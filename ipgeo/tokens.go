@@ -1,6 +1,6 @@
 package ipgeo
 
-import "github.com/nxtrace/NTrace-core/util"
+import "github.com/lianyis/dntrace/util"
 
 type tokenData struct {
 	ipinsight string

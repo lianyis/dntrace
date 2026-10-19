@@ -1,8 +1,8 @@
 package printer
 
 import (
-	"github.com/nxtrace/NTrace-core/internal/hoprender"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/internal/hoprender"
+	"github.com/lianyis/dntrace/trace"
 )
 
 func RealtimePrinter(res *trace.Result, ttl int) {

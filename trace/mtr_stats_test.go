@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 func mkHop(ttl int, ip string, rtt time.Duration) Hop {

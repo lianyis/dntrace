@@ -14,17 +14,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/internal/speedtest"
-	speedconfig "github.com/nxtrace/NTrace-core/internal/speedtest/config"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/latency"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/netx"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider/apple"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider/cloudflare"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/render"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/result"
-	"github.com/nxtrace/NTrace-core/internal/speedtest/transfer"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/internal/speedtest"
+	speedconfig "github.com/lianyis/dntrace/internal/speedtest/config"
+	"github.com/lianyis/dntrace/internal/speedtest/latency"
+	"github.com/lianyis/dntrace/internal/speedtest/netx"
+	"github.com/lianyis/dntrace/internal/speedtest/provider"
+	"github.com/lianyis/dntrace/internal/speedtest/provider/apple"
+	"github.com/lianyis/dntrace/internal/speedtest/provider/cloudflare"
+	"github.com/lianyis/dntrace/internal/speedtest/render"
+	"github.com/lianyis/dntrace/internal/speedtest/result"
+	"github.com/lianyis/dntrace/internal/speedtest/transfer"
+	"github.com/lianyis/dntrace/trace"
 )
 
 type candidate struct {

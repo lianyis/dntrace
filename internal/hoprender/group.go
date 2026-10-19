@@ -3,7 +3,7 @@ package hoprender
 import (
 	"fmt"
 
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/trace"
 )
 
 type Group struct {

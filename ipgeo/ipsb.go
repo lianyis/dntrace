@@ -9,7 +9,7 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 func IPSB(ip string, timeout time.Duration, _ string, _ bool) (*IPGeoData, error) {

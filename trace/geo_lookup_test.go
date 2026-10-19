@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 func TestLookupIPGeoCachesResults(t *testing.T) {

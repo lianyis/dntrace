@@ -10,8 +10,8 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/util"
 )
 
 var errNextTraceAPIV4TokenSetupInterrupted = errors.New("NextTrace API v4 token setup interrupted")

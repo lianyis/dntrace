@@ -12,7 +12,7 @@ import (
 
 	"golang.org/x/net/http2"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 type Options struct {

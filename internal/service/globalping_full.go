@@ -11,7 +11,7 @@ import (
 
 	"github.com/jsdelivr/globalping-cli/globalping"
 
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/trace"
 )
 
 func (s *Service) GlobalpingTrace(ctx context.Context, req GlobalpingTraceRequest) (GlobalpingMeasurementResponse, error) {

@@ -5,7 +5,7 @@ package cmd
 import (
 	"net"
 
-	"github.com/nxtrace/NTrace-core/server"
+	"github.com/lianyis/dntrace/server"
 )
 
 func runDeploy(opts deployRunOptions, onReady func(net.Addr)) error {

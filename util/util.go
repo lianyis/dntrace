@@ -18,7 +18,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/config"
+	"github.com/lianyis/dntrace/config"
 )
 
 var SrcDev string

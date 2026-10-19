@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
-	mtutrace "github.com/nxtrace/NTrace-core/trace/mtu"
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
+	mtutrace "github.com/lianyis/dntrace/trace/mtu"
+	"github.com/lianyis/dntrace/util"
 )
 
 func TestMTRParameterBoundariesMatchMCPBehavior(t *testing.T) {

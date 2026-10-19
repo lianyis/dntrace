@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
 )
 
 // Deprecated: websocket MTR now streams probe-level "mtr_raw" events via trace.RunMTRRaw.

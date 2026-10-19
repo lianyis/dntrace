@@ -9,8 +9,8 @@ import (
 
 	"github.com/akamensky/argparse"
 
-	"github.com/nxtrace/NTrace-core/internal/nali"
-	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/lianyis/dntrace/internal/nali"
+	"github.com/lianyis/dntrace/ipgeo"
 )
 
 func registerNaliFlag(parser *argparse.Parser) *bool {

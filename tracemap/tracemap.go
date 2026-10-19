@@ -14,7 +14,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 var getFastIPWithContextFn = util.GetFastIPWithContext

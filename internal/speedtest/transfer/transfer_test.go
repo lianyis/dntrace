@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/internal/speedtest/provider"
+	"github.com/lianyis/dntrace/internal/speedtest/provider"
 )
 
 func TestRunDownload(t *testing.T) {

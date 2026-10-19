@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 func NewTCPSpec(IPVersion, ICMPMode int, srcIP, dstIP net.IP, dstPort int, pktSize int) *TCPSpec {

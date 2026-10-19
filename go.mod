@@ -1,4 +1,4 @@
-module github.com/nxtrace/NTrace-core
+module github.com/lianyis/dntrace
 
 go 1.26.1
 

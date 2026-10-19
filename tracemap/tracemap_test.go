@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 type blockingRoundTripper struct{}

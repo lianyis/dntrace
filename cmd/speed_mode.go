@@ -13,10 +13,10 @@ import (
 
 	"github.com/akamensky/argparse"
 
-	speedconfig "github.com/nxtrace/NTrace-core/internal/speedtest/config"
-	speedrender "github.com/nxtrace/NTrace-core/internal/speedtest/render"
-	speedrunner "github.com/nxtrace/NTrace-core/internal/speedtest/runner"
-	"github.com/nxtrace/NTrace-core/wshandle"
+	speedconfig "github.com/lianyis/dntrace/internal/speedtest/config"
+	speedrender "github.com/lianyis/dntrace/internal/speedtest/render"
+	speedrunner "github.com/lianyis/dntrace/internal/speedtest/runner"
+	"github.com/lianyis/dntrace/wshandle"
 )
 
 type speedMetadataBackend interface {

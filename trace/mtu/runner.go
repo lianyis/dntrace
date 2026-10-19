@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/nxtrace/NTrace-core/util"
+	"github.com/lianyis/dntrace/util"
 )
 
 type prober interface {

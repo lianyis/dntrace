@@ -9,8 +9,8 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	mtutrace "github.com/nxtrace/NTrace-core/trace/mtu"
+	"github.com/lianyis/dntrace/ipgeo"
+	mtutrace "github.com/lianyis/dntrace/trace/mtu"
 )
 
 func TestNormalizeMTUProtocolFlagsAutoEnablesUDP(t *testing.T) {

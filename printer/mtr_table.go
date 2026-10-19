@@ -11,8 +11,8 @@ import (
 	"github.com/rodaine/table"
 	"golang.org/x/term"
 
-	"github.com/nxtrace/NTrace-core/ipgeo"
-	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/lianyis/dntrace/ipgeo"
+	"github.com/lianyis/dntrace/trace"
 )
 
 // ---------------------------------------------------------------------------
