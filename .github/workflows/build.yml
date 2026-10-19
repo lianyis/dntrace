@@ -24,18 +24,20 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # darwin needs a macOS runner: trace/internal/tcp_darwin.go uses
+    # gopacket/pcap (libpcap via CGO), which cannot cross-compile from linux.
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { goos: linux,   goarch: amd64 }
-          - { goos: linux,   goarch: arm64 }
-          - { goos: darwin,  goarch: amd64 }
-          - { goos: darwin,  goarch: arm64 }
-          - { goos: windows, goarch: amd64 }
+          - { goos: linux,   goarch: amd64, runner: ubuntu-latest, cgo: 0 }
+          - { goos: linux,   goarch: arm64, runner: ubuntu-latest, cgo: 0 }
+          - { goos: windows, goarch: amd64, runner: ubuntu-latest, cgo: 0 }
+          - { goos: darwin,  goarch: amd64, runner: macos-latest,   cgo: 1 }
+          - { goos: darwin,  goarch: arm64, runner: macos-latest,   cgo: 1 }
     env:
-      CGO_ENABLED: 0
+      CGO_ENABLED: ${{ matrix.cgo }}
       GOOS:   ${{ matrix.goos }}
       GOARCH: ${{ matrix.goarch }}
     steps:
